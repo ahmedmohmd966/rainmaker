@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAINMAKER | كتالوج العطور</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== DESIGN TOKENS ===== */
+    :root {
+      --black: #080808;
+      --deep: #0e0e0e;
+      --surface: #141414;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --silver: #c8c8c8;
+      --silver-light: #e8e8e8;
+      --gold: #c9a84c;
+      --gold-light: #e8c96e;
+      --text-primary: #f0f0f0;
+      --text-secondary: #999;
+      --text-muted: #666;
+      --accent-pink: #e8a0b0;
+      --radius: 16px;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--black);
+      color: var(--text-primary);
+      font-family: 'Cairo', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== ADMIN PANEL ===== */
+    #admin-panel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 9999;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    #admin-panel.active { display: block; }
+
+    .admin-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admin-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--gold);
+    }
+
+    .btn-close-admin {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 20px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .btn-close-admin:hover { background: var(--border); }
+
+    .admin-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .admin-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+      width: 100%;
+      direction: rtl;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--black);
+      border: none;
+      padding: 12px 28px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+
+    .btn-danger {
+      background: #c0392b;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.8rem;
+    }
+    .btn-danger:hover { background: #e74c3c; }
+
+    .btn-edit {
+      background: var(--border);
+      color: var(--text-primary);
+      border: none;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.8rem;
+    }
+    .btn-edit:hover { background: #3a3a3a; }
+
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .product-list-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .product-list-img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .product-list-info { flex: 1; }
+    .product-list-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+    .product-list-price { color: var(--gold); font-size: 0.85rem; }
+
+    .product-list-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ===== SITE SETTINGS FORM ===== */
+    .color-input { width: 50px; height: 36px; padding: 2px; cursor: pointer; }
+
+    /* ===== HEADER ===== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,8,8,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img {
+      height: 48px;
+      width: auto;
+      filter: brightness(1.1);
+    }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, var(--silver), var(--silver-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-admin {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .btn-admin:hover { border-color: var(--gold); color: var(--gold); }
+
+    .cart-btn {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      color: var(--black);
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      padding: 80px 24px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--silver-light) 0%, var(--silver) 60%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--gold);
+      display: block;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px; }
+
+    .stat-divider {
+      width: 1px;
+      height: 40px;
+      background: var(--border);
+    }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+      background: var(--deep);
+    }
+
+    .filter-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 7px 18px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 16px 8px 40px;
+      border-radius: 40px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.85rem;
+      width: 220px;
+      direction: rtl;
+    }
+    .search-input:focus { outline: none; border-color: var(--gold); }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* ===== CATALOG GRID ===== */
+    .catalog-section {
+      padding: 48px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--text-primary);
+    }
+
+    .products-count {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    /* ===== PRODUCT CARD ===== */
+    .product-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .product-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(201,168,76,0.4);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.15);
+    }
+
+    .card-image-wrap {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .product-card:hover .card-image { transform: scale(1.06); }
+
+    .card-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(8,8,8,0.8) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+    }
+
+    .product-card:hover .card-overlay { opacity: 1; }
+
+    .overlay-cta {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--black);
+      border: none;
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .overlay-cta:hover { transform: scale(1.02); }
+
+    .card-body {
+      padding: 18px 18px 20px;
+    }
+
+    .card-brand {
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--gold-light);
+    }
+
+    .card-price span {
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .card-add {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-add:hover {
+      background: var(--gold);
+      color: var(--black);
+      border-color: var(--gold);
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      padding: 24px;
+      overflow-y: auto;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      max-width: 700px;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { color: var(--text-primary); background: var(--border); }
+
+    .modal-image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+    }
+
+    .modal-body {
+      padding: 28px;
+    }
+
+    .modal-brand {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .modal-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .modal-desc {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .modal-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--gold-light);
+    }
+
+    .modal-price small {
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .btn-order {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--black);
+      border: none;
+      padding: 14px 32px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all 0.3s;
+      flex: 1;
+    }
+    .btn-order:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.35); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      letter-spacing: 6px;
+      color: var(--silver);
+      margin-bottom: 16px;
+    }
+
+    .footer-tagline {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .footer-contact {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .contact-icon { color: var(--gold); }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--gold);
+      color: var(--black);
+      padding: 12px 28px;
+      border-radius: 40px;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 9999;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ===== NO RESULTS ===== */
+    .no-results {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--text-muted);
+    }
+    .no-results-icon { font-size: 3rem; margin-bottom: 16px; }
+    .no-results-text { font-size: 1.1rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .products-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+      .hero { padding: 60px 16px 40px; }
+      .hero-stats { gap: 24px; }
+      .stat-divider { display: none; }
+      .filter-inner { flex-direction: column; align-items: flex-start; }
+      .search-input { width: 100%; }
+      .header-inner { padding: 0; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    /* ===== IMAGE UPLOAD PREVIEW ===== */
+    .img-preview {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h2 class="admin-title">⚙️ لوحة التحكم</h2>
+      <button class="btn-close-admin" onclick="closeAdmin()">✕ إغلاق</button>
+    </div>
+
+    <!-- SITE SETTINGS -->
+    <div class="admin-section">
+      <h3 class="admin-section-title">🎨 إعدادات الموقع</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم البراند</label>
+          <input type="text" id="set-brand-name" value="RAINMAKER" oninput="updateSetting('brandName', this.value)" />
+        </div>
+        <div class="form-group">
+          <label>الشعار الفرعي</label>
+          <input type="text" id="set-tagline" value="عطور فاخرة بأسعار استثنائية" oninput="updateSetting('tagline', this.value)" />
+        </div>
+        <div class="form-group">
+          <label>رقم الواتساب للطلبات</label>
+          <input type="text" id="set-whatsapp" value="201234567890" oninput="updateSetting('whatsapp', this.value)" />
+        </div>
+        <div class="form-group">
+          <label>العملة</label>
+          <input type="text" id="set-currency" value="ج.م." oninput="updateSetting('currency', this.value)" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>وصف الموقع (Hero)</label>
+          <textarea id="set-hero-desc" oninput="updateSetting('heroDesc', this.value)">استمتع بأفضل العطور العالمية — Extrait de Parfum بتركيز عالٍ في 50ml، تشعر بالفرق من أول رشّة</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD PRODUCT -->
+    <div class="admin-section">
+      <h3 class="admin-section-title">➕ إضافة منتج جديد</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم العطر</label>
+          <input type="text" id="new-name" placeholder="مثال: Hacivat" />
+        </div>
+        <div class="form-group">
+          <label>البراند الأصلي</label>
+          <input type="text" id="new-brand" placeholder="مثال: Nishane" />
+        </div>
+        <div class="form-group">
+          <label>السعر (بالأرقام فقط)</label>
+          <input type="number" id="new-price" placeholder="600" />
+        </div>
+        <div class="form-group">
+          <label>الفئة</label>
+          <select id="new-category">
+            <option value="all">عام</option>
+            <option value="men">رجالي</option>
+            <option value="women">نسائي</option>
+            <option value="unisex">يونيسكس</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>الوصف</label>
+          <textarea id="new-desc" placeholder="اكتب وصفاً مختصراً للعطر..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>صورة المنتج (رفع من الجهاز)</label>
+          <input type="file" id="new-image" accept="image/*" onchange="previewImage(this, 'preview-new')" />
+          <img id="preview-new" class="img-preview" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addProduct()">+ إضافة المنتج</button>
+    </div>
+
+    <!-- EDIT PRODUCTS -->
+    <div class="admin-section">
+      <h3 class="admin-section-title">📋 تعديل / حذف المنتجات</h3>
+      <div id="admin-products-list" class="products-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PRODUCT MODAL -->
+<div id="edit-modal" class="modal-overlay">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <div class="modal-body">
+      <h3 style="color:var(--gold);margin-bottom:20px;">✏️ تعديل المنتج</h3>
+      <input type="hidden" id="edit-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم العطر</label>
+          <input type="text" id="edit-name" />
+        </div>
+        <div class="form-group">
+          <label>البراند الأصلي</label>
+          <input type="text" id="edit-brand" />
+        </div>
+        <div class="form-group">
+          <label>السعر</label>
+          <input type="number" id="edit-price" />
+        </div>
+        <div class="form-group">
+          <label>الفئة</label>
+          <select id="edit-category">
+            <option value="all">عام</option>
+            <option value="men">رجالي</option>
+            <option value="women">نسائي</option>
+            <option value="unisex">يونيسكس</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>الوصف</label>
+          <textarea id="edit-desc"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>صورة جديدة (اختياري)</label>
+          <input type="file" id="edit-image" accept="image/*" onchange="previewImage(this, 'preview-edit')" />
+          <img id="preview-edit" class="img-preview" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveEdit()" style="width:100%;margin-top:8px;">💾 حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div id="product-modal" class="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <img id="modal-img" class="modal-image" src="" alt="" />
+    <div class="modal-body">
+      <p class="modal-brand" id="modal-brand"></p>
+      <h2 class="modal-name" id="modal-name"></h2>
+      <p class="modal-desc" id="modal-desc"></p>
+      <div class="modal-footer">
+        <div class="modal-price"><span id="modal-price"></span> <small id="modal-curr">ج.م.</small></div>
+        <button class="btn-order" id="modal-order-btn">📱 اطلب الآن عبر واتساب</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <!-- Inline SVG cloud+bottle logo (Rainmaker style) -->
+      <svg width="44" height="34" viewBox="0 0 44 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sg" x1="0" y1="0" x2="44" y2="34" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#e8e8e8"/>
+            <stop offset="100%" stop-color="#999"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 22c-5 0-9-3.5-9-8s4-8 9-8c.5 0 1 0 1.5.1C13 3.3 17 1 22 1s9 2.3 10.5 5.1c.5-.1 1-.1 1.5-.1 5 0 9 3.5 9 8s-4 8-9 8H10z" fill="url(#sg)" opacity="0.9"/>
+        <rect x="18" y="11" width="8" height="11" rx="2" fill="#141414" stroke="url(#sg)" stroke-width="1"/>
+        <rect x="20" y="9" width="4" height="3" rx="1" fill="#141414" stroke="url(#sg)" stroke-width="1"/>
+        <circle cx="22" cy="18" r="2" fill="url(#sg)" opacity="0.8"/>
+      </svg>
+      <span class="logo-text" id="header-brand-name">RAINMAKER</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-admin" onclick="openAdmin()">⚙️ إدارة الموقع</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Extrait de Parfum · 50ml · 1.7 fl.oz</p>
+  <h1 class="hero-title" id="hero-brand-title">RAINMAKER</h1>
+  <p class="hero-subtitle" id="hero-subtitle">استمتع بأفضل العطور العالمية — Extrait de Parfum بتركيز عالٍ في 50ml، تشعر بالفرق من أول رشّة</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num" id="stat-count">30+</span>
+      <span class="stat-label">عطر متاح</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">50ml</span>
+      <span class="stat-label">حجم الزجاجة</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">100%</span>
+      <span class="stat-label">Extrait de Parfum</span>
+    </div>
+  </div>
+</section>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="setFilter('all', this)">الكل</button>
+      <button class="filter-btn" onclick="setFilter('men', this)">رجالي</button>
+      <button class="filter-btn" onclick="setFilter('women', this)">نسائي</button>
+      <button class="filter-btn" onclick="setFilter('unisex', this)">يونيسكس</button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="ابحث عن عطر..." oninput="searchProducts(this.value)" />
+    </div>
+  </div>
+</div>
+
+<!-- CATALOG -->
+<main class="catalog-section">
+  <div class="section-header">
+    <h2 class="section-title">كتالوج العطور</h2>
+    <span class="products-count" id="count-badge">0 عطر</span>
+  </div>
+  <div class="products-grid" id="products-grid"></div>
+  <div class="no-results" id="no-results" style="display:none;">
+    <div class="no-results-icon">🔍</div>
+    <p class="no-results-text">لا توجد نتائج مطابقة</p>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo" id="footer-brand">RAINMAKER</div>
+  <p class="footer-tagline" id="footer-tagline">عطور فاخرة بأسعار استثنائية</p>
+  <div class="footer-contact">
+    <div class="contact-item">
+      <span class="contact-icon">📱</span>
+      <span>تواصل معنا للطلب عبر واتساب</span>
+    </div>
+  </div>
+  <p style="color:var(--text-muted);font-size:0.75rem;">© 2025 RAINMAKER · جميع الحقوق محفوظة</p>
+</footer>
+
+<script>
+// =================== DATA ===================
+let settings = {
+  brandName: 'RAINMAKER',
+  tagline: 'عطور فاخرة بأسعار استثنائية',
+  heroDesc: 'استمتع بأفضل العطور العالمية — Extrait de Parfum بتركيز عالٍ في 50ml، تشعر بالفرق من أول رشّة',
+  whatsapp: '201234567890',
+  currency: 'ج.م.'
+};
+
+let products = [
+  {
+    id: 1,
+    name: 'Musky Garden',
+    brand: 'Mancera',
+    price: 600,
+    category: 'unisex',
+    desc: 'عطر مسكي زهري فاخر من دار Mancera الباريسية، مزيج ساحر من المسك والورود والفواكه الحمراء مع عناصر خشبية دافئة',
+    image: 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80'
+  },
+  {
+    id: 2,
+    name: 'Hacivat',
+    brand: 'Nishane',
+    price: 600,
+    category: 'unisex',
+    desc: 'تحفة فنية من دار Nishane الإسطنبولية، نكهات الأناناس والليمون مع الخشب وعشب البحر في مزيج استثنائي',
+    image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80'
+  },
+  {
+    id: 3,
+    name: 'Erba Pura',
+    brand: 'Xerjoff',
+    price: 600,
+    category: 'unisex',
+    desc: 'من أشهر عطور Xerjoff الإيطالية الفاخرة، يجمع بين الفواكه الاستوائية والمسك الأبيض والخشب العطري',
+    image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80'
+  },
+  {
+    id: 4,
+    name: 'Sensual Instinct',
+    brand: 'Montale',
+    price: 550,
+    category: 'women',
+    desc: 'عطر نسائي حسّي من Montale Paris، مزيج من الورود والفانيليا والمسك بطابع شرقي دافئ',
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&q=80'
+  },
+  {
+    id: 5,
+    name: 'Le Male Le Parfum',
+    brand: 'Jean Paul Gaultier',
+    price: 480,
+    category: 'men',
+    desc: 'الإصدار الأقوى من الكلاسيكي le male، بتركيز Parfum أعلى مع الريحان والخزامى والأمبر الخشبي',
+    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80'
+  },
+  {
+    id: 6,
+    name: 'Eden Juicy Apple',
+    brand: 'Kayali',
+    price: 480,
+    category: 'women',
+    desc: 'من مجموعة Kayali الشهيرة لـ Huda Beauty، تفاحة عصيرية منعشة مع الفانيليا والمسك الحلو',
+    image: 'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=600&q=80'
+  },
+  {
+    id: 7,
+    name: 'عشق الشيوخ جولد',
+    brand: 'Lattafa',
+    price: 480,
+    category: 'unisex',
+    desc: 'عطر شرقي فاخر من Lattafa، مزيج من العود والعنبر والمسك بأسلوب خليجي أصيل',
+    image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&q=80'
+  },
+  {
+    id: 8,
+    name: 'The Noir 29',
+    brand: 'Le Labo',
+    price: 600,
+    category: 'unisex',
+    desc: 'من أكثر عطور Le Labo غموضاً وجمالاً، الشاي الأسود والتين والخشب الدخاني في مزيج فريد',
+    image: 'https://images.unsplash.com/photo-1547887538-047f457c438a?w=600&q=80'
+  },
+  {
+    id: 9,
+    name: 'Santal 33',
+    brand: 'Le Labo',
+    price: 600,
+    category: 'unisex',
+    desc: 'الأيقونة الأشهر من Le Labo، خشب الصندل الكريمي مع الجلد والبقدنوس والزنبق',
+    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80'
+  },
+  {
+    id: 10,
+    name: 'Classique',
+    brand: 'Jean Paul Gaultier',
+    price: 480,
+    category: 'women',
+    desc: 'الكلاسيك النسائي الخالد من JPG، مزيج زهري دافئ بالزنبق والورد والفانيليا الناعمة',
+    image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80'
+  },
+  {
+    id: 11,
+    name: 'Gucci Rush',
+    brand: 'Gucci',
+    price: 480,
+    category: 'women',
+    desc: 'عطر نسائي أيقوني من Gucci، مزيج من الخوخ والفريزيا والجاردينيا مع الكزبرة والنعناع',
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&q=80'
+  },
+  {
+    id: 12,
+    name: "Dallachaï",
+    brand: 'Montale',
+    price: 600,
+    category: 'unisex',
+    desc: 'مزيج استثنائي من الشاي الدافئ والبهارات الشرقية والخشب من دار Montale الباريسية',
+    image: 'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=600&q=80'
+  },
+  {
+    id: 13,
+    name: 'Back to Black',
+    brand: 'By Kilian',
+    price: 600,
+    category: 'unisex',
+    desc: 'تحفة By Kilian الأكثر إثارةً، التبغ والعسل والكرز الأسود في سيمفونية تدوم طويلاً',
+    image: 'https://images.unsplash.com/photo-1547887538-047f457c438a?w=600&q=80'
+  },
+  {
+    id: 14,
+    name: 'Burberry Her',
+    brand: 'Burberry',
+    price: 480,
+    category: 'women',
+    desc: 'إلهام نسائي عصري من Burberry، التوت والفراولة مع الياسمين والأنبر في مزيج يمثل المرأة الحديثة',
+    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80'
+  },
+  {
+    id: 15,
+    name: 'Le Male Elixir',
+    brand: 'Jean Paul Gaultier',
+    price: 480,
+    category: 'men',
+    desc: 'الإكسير الأقوى في مجموعة le male، تركيبة خشبية حيوانية حسّية لا تُقاوم',
+    image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&q=80'
+  },
+  {
+    id: 16,
+    name: 'Roses Musk',
+    brand: 'Montale',
+    price: 550,
+    category: 'women',
+    desc: 'من أبرز عطور Montale النسائية، ورود داماسك حمراء وبيضاء ممزوجة بالمسك الناعم',
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&q=80'
+  },
+  {
+    id: 17,
+    name: 'Hibiscus Mahajád',
+    brand: 'Maison Crivelli',
+    price: 600,
+    category: 'unisex',
+    desc: 'من الدار الفرنسية الفاخرة Maison Crivelli، تجربة زهرة الكركديه الاستوائية الحارة',
+    image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80'
+  },
+  {
+    id: 18,
+    name: 'Oud Maracuja',
+    brand: 'Maison Crivelli',
+    price: 600,
+    category: 'unisex',
+    desc: 'لقاء العود الشرقي مع فاكهة المارقويا الاستوائية في تجربة مذهلة من Maison Crivelli',
+    image: 'https://images.unsplash.com/photo-1547887538-047f457c438a?w=600&q=80'
+  },
+  {
+    id: 19,
+    name: 'Queen of Silk',
+    brand: 'Creed',
+    price: 550,
+    category: 'women',
+    desc: 'الجديد المبهر من دار Creed الملكية، ناعم وحريري كالحرير مع الورود والمسك الأبيض',
+    image: 'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=600&q=80'
+  },
+  {
+    id: 20,
+    name: 'One & Only',
+    brand: 'Gissah',
+    price: 600,
+    category: 'unisex',
+    desc: 'عطر فريد من نوعه من دار Gissah الإماراتية، يجمع بين الرقي الشرقي والأناقة الغربية',
+    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80'
+  },
+  {
+    id: 21,
+    name: 'Le Beau Le Parfum',
+    brand: 'Jean Paul Gaultier',
+    price: 600,
+    category: 'men',
+    desc: 'تجربة الجمال المثالي من JPG، جوز الهند والأناناس مع زهرة الأيريس والصندل في بحر الـ teal',
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&q=80'
+  },
+  {
+    id: 22,
+    name: 'Yum Pistachio Gelato 33',
+    brand: 'Kayali',
+    price: 480,
+    category: 'unisex',
+    desc: 'المفاجأة الحلوة من Kayali، عطر مستوحى من جيلاتو الفستق الكريمي، حلو الرائحة ومبهج',
+    image: 'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=600&q=80'
+  },
+  {
+    id: 23,
+    name: 'يارا كاندي',
+    brand: 'Lattafa',
+    price: 480,
+    category: 'women',
+    desc: 'نسخة حلوة مميزة من سلسلة يارا بـ Lattafa، فاكهة حمراء ناعمة مع الفانيليا والسكر',
+    image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80'
+  },
+  {
+    id: 24,
+    name: 'Versace Pour Homme Dylan Blue',
+    brand: 'Versace',
+    price: 600,
+    category: 'men',
+    desc: 'الكلاسيك الأزرق الذكوري من Versace، الليمون والبطيخ مع الأيريس والأمبر في إطار بحري جريء',
+    image: 'https://images.unsplash.com/photo-1547887538-047f457c438a?w=600&q=80'
+  },
+  {
+    id: 25,
+    name: 'Chocolate Greedy',
+    brand: 'Montale',
+    price: 600,
+    category: 'unisex',
+    desc: 'إغراء الشوكولا الداكنة مع الفانيليا والكراميل من Montale، أشهر عطر غورميه في العالم',
+    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80'
+  },
+  {
+    id: 26,
+    name: 'Pure Gold',
+    brand: 'Montale',
+    price: 600,
+    category: 'women',
+    desc: 'ذهب خالص في زجاجة، مزيج نسائي راقٍ من الزهور والمشمش والعنبر والذهب الأبيض',
+    image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80'
+  },
+  {
+    id: 27,
+    name: 'Silver Mountain Water',
+    brand: 'Creed',
+    price: 600,
+    category: 'men',
+    desc: 'نقاء جبال الألب في زجاجة من Creed، الشاي الأخضر والليمون والكشمش الأسود مع المسك الفضي',
+    image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&q=80'
+  },
+  {
+    id: 28,
+    name: 'Pink Extasy',
+    brand: 'Montale',
+    price: 480,
+    category: 'women',
+    desc: 'نشوة وردية من Montale، فراولة وكرز وتوت مع الياسمين الوردي والمسك الزهري',
+    image: 'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=600&q=80'
+  }
+];
+
+let currentFilter = 'all';
+let currentSearch = '';
+let nextId = 100;
+
+// =================== RENDER ===================
+function renderProducts() {
+  const grid = document.getElementById('products-grid');
+  const noResults = document.getElementById('no-results');
+
+  let filtered = products.filter(p => {
+    const matchFilter = currentFilter === 'all' || p.category === currentFilter;
+    const matchSearch = currentSearch === '' ||
+      p.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+      p.brand.toLowerCase().includes(currentSearch.toLowerCase()) ||
+      p.desc.toLowerCase().includes(currentSearch.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  document.getElementById('count-badge').textContent = filtered.length + ' عطر';
+  document.getElementById('stat-count').textContent = products.length + '+';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="product-card" onclick="openProduct(${p.id})">
+      <div class="card-image-wrap">
+        <img class="card-image" src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80'" />
+        <div class="card-badge">Extrait de Parfum</div>
+        <div class="card-overlay">
+          <button class="overlay-cta" onclick="event.stopPropagation();openProduct(${p.id})">عرض التفاصيل</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-brand">${p.brand}</p>
+        <h3 class="card-name">${p.name}</h3>
+        <p class="card-desc">${p.desc}</p>
+        <div class="card-footer">
+          <div class="card-price">${p.price.toLocaleString()} <span>${settings.currency}</span></div>
+          <button class="card-add" onclick="event.stopPropagation();orderProduct(${p.id})" title="اطلب عبر واتساب">📱</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// =================== FILTER & SEARCH ===================
+function setFilter(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
+}
+
+function searchProducts(val) {
+  currentSearch = val;
+  renderProducts();
+}
+
+// =================== PRODUCT MODAL ===================
+function openProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modal-img').src = p.image;
+  document.getElementById('modal-brand').textContent = p.brand;
+  document.getElementById('modal-name').textContent = p.name;
+  document.getElementById('modal-desc').textContent = p.desc;
+  document.getElementById('modal-price').textContent = p.price.toLocaleString();
+  document.getElementById('modal-curr').textContent = settings.currency;
+  document.getElementById('modal-order-btn').onclick = () => orderProduct(id);
+  document.getElementById('product-modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('product-modal').classList.remove('active');
+}
+
+function orderProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  const msg = encodeURIComponent(`مرحباً! أريد طلب عطر:\n*${p.name} / ${p.brand}*\nالسعر: ${p.price} ${settings.currency}\n50ml Extrait de Parfum`);
+  window.open(`https://wa.me/${settings.whatsapp}?text=${msg}`, '_blank');
+}
+
+// =================== ADMIN ===================
+function openAdmin() {
+  renderAdminList();
+  document.getElementById('admin-panel').classList.add('active');
+}
+
+function closeAdmin() {
+  document.getElementById('admin-panel').classList.remove('active');
+}
+
+function renderAdminList() {
+  const list = document.getElementById('admin-products-list');
+  list.innerHTML = products.map(p => `
+    <div class="product-list-item">
+      <img class="product-list-img" src="${p.image}" onerror="this.src='https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300&q=80'" />
+      <div class="product-list-info">
+        <div class="product-list-name">${p.name} / ${p.brand}</div>
+        <div class="product-list-price">${p.price} ${settings.currency}</div>
+      </div>
+      <div class="product-list-actions">
+        <button class="btn-edit" onclick="openEditModal(${p.id})">✏️ تعديل</button>
+        <button class="btn-danger" onclick="deleteProduct(${p.id})">🗑 حذف</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateSetting(key, value) {
+  settings[key] = value;
+  // Apply live
+  if (key === 'brandName') {
+    document.getElementById('header-brand-name').textContent = value;
+    document.getElementById('hero-brand-title').textContent = value;
+    document.getElementById('footer-brand').textContent = value;
+  }
+  if (key === 'tagline') {
+    document.getElementById('footer-tagline').textContent = value;
+  }
+  if (key === 'heroDesc') {
+    document.getElementById('hero-subtitle').textContent = value;
+  }
+}
+
+function previewImage(input, previewId) {
+  const preview = document.getElementById(previewId);
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function addProduct() {
+  const name = document.getElementById('new-name').value.trim();
+  const brand = document.getElementById('new-brand').value.trim();
+  const price = parseInt(document.getElementById('new-price').value);
+  const category = document.getElementById('new-category').value;
+  const desc = document.getElementById('new-desc').value.trim();
+  const imageInput = document.getElementById('new-image');
+  const preview = document.getElementById('preview-new');
+
+  if (!name || !brand || !price || !desc) {
+    showToast('⚠️ يرجى ملء جميع الحقول');
+    return;
+  }
+
+  const imageUrl = preview.style.display === 'block' ? preview.src :
+    'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80';
+
+  products.push({ id: nextId++, name, brand, price, category, desc, image: imageUrl });
+
+  // Clear form
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-brand').value = '';
+  document.getElementById('new-price').value = '';
+  document.getElementById('new-desc').value = '';
+  imageInput.value = '';
+  preview.style.display = 'none';
+
+  renderProducts();
+  renderAdminList();
+  showToast('✅ تم إضافة المنتج بنجاح!');
+}
+
+function deleteProduct(id) {
+  if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+  products = products.filter(p => p.id !== id);
+  renderProducts();
+  renderAdminList();
+  showToast('🗑 تم حذف المنتج');
+}
+
+function openEditModal(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-name').value = p.name;
+  document.getElementById('edit-brand').value = p.brand;
+  document.getElementById('edit-price').value = p.price;
+  document.getElementById('edit-category').value = p.category;
+  document.getElementById('edit-desc').value = p.desc;
+  document.getElementById('preview-edit').style.display = 'none';
+  document.getElementById('edit-modal').classList.add('active');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+}
+
+function saveEdit() {
+  const id = parseInt(document.getElementById('edit-id').value);
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  p.name = document.getElementById('edit-name').value.trim();
+  p.brand = document.getElementById('edit-brand').value.trim();
+  p.price = parseInt(document.getElementById('edit-price').value);
+  p.category = document.getElementById('edit-category').value;
+  p.desc = document.getElementById('edit-desc').value.trim();
+
+  const preview = document.getElementById('preview-edit');
+  if (preview.style.display === 'block') {
+    p.image = preview.src;
+  }
+
+  closeEditModal();
+  renderProducts();
+  renderAdminList();
+  showToast('✅ تم حفظ التعديلات!');
+}
+
+// =================== TOAST ===================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// =================== CLOSE ON OVERLAY CLICK ===================
+document.getElementById('product-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+// =================== INIT ===================
+renderProducts();
+</script>
+</body>
+</html>
